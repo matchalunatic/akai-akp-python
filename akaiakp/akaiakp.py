@@ -12,8 +12,11 @@ from .data_maps import *
 
 class AkaiAKPFile:
     @property
-    def keygroups(self) -> iter:
-        return iter(self._keygroups)
+    def riff(self) -> RIFFClass:
+        return self._riff
+    @property
+    def keygroups(self) -> list:
+        return self._keygroups
 
     @property
     def tune(self) -> TuneClass:
@@ -48,69 +51,15 @@ class AkaiAKPFile:
         self._mpn = None
         self._keygroups = []
         self._sections = {}
-        self._as_bytes = bytearray(16384)
+        self._as_bytes = bytearray()
         self._akp_length = 0
-        self._prg = OrderedDict(
-            {"u_0": None, "midi_program_number": None, "num_keygroups": None}
-        )
+        self._riff = RIFFClass()
+        self._prg = PrgClass()
         self._tune = TuneClass()
         self._envelopes = []
-        # OrderedDict(
-        #    {
-        #        "u_0": None,
-        #        "semitone_tune": None,
-        #        "fine_tune": None,
-        #        "c_detune": None,
-        #        "cs_detune": None,
-        #        "d_detune": None,
-        #        "ds_detune": None,
-        #        "e_detune": None,
-        #        "f_detune": None,
-        #        "fs_detune": None,
-        #        "g_detune": None,
-        #        "gs_detune": None,
-        #        "a_detune": None,
-        #        "bb_detune": None,
-        #        "b_detune": None,
-        #        "pitchbend_up": None,
-        #        "pitchbend_down": None,
-        #        "bend_mode": None,
-        #        "aftertouch": None,
-        #        "u_19": None,
-        #        "u_20": None,
-        #        "u_21": None,
-        #    }
-        # )
-        self._out = OrderedDict(
-            {
-                "u_0": None,
-                "loudness": None,
-                "amp_mod_1": None,
-                "amp_mod_2": None,
-                "pan_mod_1": None,
-                "pan_mod_2": None,
-                "pan_mod_3": None,
-                "velocity_sens": None,
-            }
-        )
-        lfo_template = OrderedDict(
-            {
-                "u_0": None,
-                "waveform": None,
-                "rate": None,
-                "delay": None,
-                "depth": None,
-                "lfo_sync": None,
-                "lfo_retrigger": None,
-                "modwheel": None,
-                "aftertouch": None,
-                "rate_mod": None,
-                "delay_mod": None,
-                "depth_mod": None,
-            }
-        )
+        self._out = OutClass()
 
-        self._lfo = [OrderedDict(**lfo_template), OrderedDict(**lfo_template)]
+        self._lfo = [LFO1Class(), LFO2Class()]
         self._mods = ModsClass()
 
         self.readbytes()
@@ -124,7 +73,7 @@ class AkaiAKPFile:
 
     def parse_prg(self, data: bytes):
         self._prg = PrgClass(*data)
- 
+
     def parse_tune(self, data: bytes):
         up = {
             "u_0": data[0],
@@ -156,26 +105,7 @@ class AkaiAKPFile:
             setattr(self._tune, k, v)
 
     def parse_kg_kloc(self, data: bytes):
-        return OrderedDict(
-            {
-                "unused_0": data[0],
-                "unused_1": data[1],
-                "unused_2": data[2],
-                "unused_3": data[3],
-                "low_note": data[4],
-                "high_note": data[5],
-                "semitone_tune": data[6],
-                "fine_tune": data[7],
-                "override_fx": data[8],
-                "fx_send_level": data[9],
-                "pitch_mode_1": data[10],
-                "pitch_mode_2": data[11],
-                "amp_mode": data[12],
-                "zone_xfade": data[13],
-                "mute_group": data[14],
-                "unused_15": data[15],
-            }
-        )
+        return KLocClass(*data)
 
     def parse_kg_envelope(self, data: bytes, env: type) -> dict:
         # up = {
@@ -202,28 +132,17 @@ class AkaiAKPFile:
 
     def parse_kg_zone(self, data: bytes) -> dict:
         len_sample_name = data[1]
-        sample_name = data[2 : 2 + len_sample_name]
-        parm_off = 1 + len_sample_name
-
+        sample_name = bytes(data[2 : 22])
+        print(sample_name, len(sample_name))
+        parm_off = 22
+        remainder = data[parm_off:]
+        print("remainder", remainder, len(remainder))
         return ZoneClass(
-            data[0], len_sample_name, sample_name, *data[parm_off : parm_off + 24]
+            data[0], len_sample_name, sample_name, *remainder
         )
 
     def parse_kg_filter(self, data: bytes):
-        return OrderedDict(
-            {
-                "u_0": data[0],
-                "filter_mode": data[1],
-                "cutoff_freq": data[2],
-                "resonance": data[3],
-                "keyboard_track": data[4],
-                "mod_input_1": data[5],
-                "mod_input_2": data[6],
-                "mod_input_3": data[7],
-                "headroom": data[8],
-                "u_9": data[9],
-            }
-        )
+        return FilterClass(*data)
 
     def parse_keygroup(self, data: bytes):
         # a keygroup is a nested collection of sections
@@ -231,19 +150,6 @@ class AkaiAKPFile:
         envelope_counter = 0
         zone_counter = 0
         offset = 0
-        keygroup = OrderedDict(
-            {
-                "kloc": OrderedDict({}),
-                "amp_env": EnvelopeClass(),
-                "fil_env": EnvelopeClass(),
-                "aux_env": AuxEnvelopeClass(),
-                "filter": OrderedDict({}),
-                "zone1": OrderedDict({}),
-                "zone2": OrderedDict({}),
-                "zone3": OrderedDict({}),
-                "zone4": OrderedDict({}),
-            }
-        )
 
         zones = [
             "zone1",
@@ -251,7 +157,10 @@ class AkaiAKPFile:
             "zone3",
             "zone4",
         ]
-        envelopes = ["amp_env", "fil_env", "aux_env"]
+        kloc = None
+        filter = None
+        zones = [None, None, None, None]
+        envelopes = [None, None, None]
         while offset < len(data):
             section_name = data[offset : offset + 4].decode("ascii")
             section_length = struct.unpack_from("<I", data[offset + 4 : offset + 8])[0]
@@ -259,10 +168,10 @@ class AkaiAKPFile:
             assert section_length % 2 == 0
             if section_name == "kloc":
                 assert section_length == 16
-                keygroup["kloc"].update(self.parse_kg_kloc(sections))
+                kloc = self.parse_kg_kloc(sections)
             elif section_name == "env ":
                 assert section_length == 18
-                keygroup[envelopes[envelope_counter]] = self.parse_kg_envelope(
+                envelopes[envelope_counter] = self.parse_kg_envelope(
                     sections,
                     EnvelopeClass if envelope_counter < 2 else AuxEnvelopeClass,
                 )
@@ -270,27 +179,26 @@ class AkaiAKPFile:
                 envelope_counter += 1
             elif section_name == "filt":
                 assert section_length == 10
-                keygroup["filter"].update(self.parse_kg_filter(sections))
+                filter = self.parse_kg_filter(sections)
             elif section_name == "zone":
-                # print(f'zone len: {section_length}')
-                keygroup[zones[zone_counter]] = self.parse_kg_zone(sections)
+                print(f'zone len: {section_length}')
+                zones[zone_counter] = self.parse_kg_zone(sections)
                 zone_counter += 1
             offset += section_length + 8
-        return keygroup
+        return KeygroupClass(
+            kloc=kloc,
+            amp_envelope=envelopes[0],
+            filter_envelope=envelopes[1],
+            aux_envelope=envelopes[2],
+            filter=filter,
+            zone1=zones[0],
+            zone2=zones[1],
+            zone3=zones[2],
+            zone4=zones[3],
+        )
 
     def parse_out(self, data: bytes):
-        self._out.update(
-            {
-                "u_0": data[0],
-                "loudness": data[1],
-                "amp_mod_1": data[2],
-                "amp_mod_2": data[3],
-                "pan_mod_1": data[4],
-                "pan_mod_2": data[5],
-                "pan_mod_3": data[6],
-                "velocity_sens": data[7],
-            }
-        )
+        self._out = OutClass(*data)
 
     def parse_lfo(self, data: bytes, lfoclass: type) -> object:
         return lfoclass(*data)
@@ -367,7 +275,9 @@ class AkaiAKPFile:
                 self.parse_tune(sections)
             elif section_name == "lfo ":
                 assert section_length == 14
-                self._lfo[lfo_counter] = self.parse_lfo(sections, LFO1Class if lfo_counter == 0 else LFO2Class)
+                self._lfo[lfo_counter] = self.parse_lfo(
+                    sections, LFO1Class if lfo_counter == 0 else LFO2Class
+                )
                 lfo_counter += 1
             elif section_name == "mods":
                 assert section_length == 38

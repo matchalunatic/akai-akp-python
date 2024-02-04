@@ -422,7 +422,7 @@ Enjoy!
 	
 	0126:	01	.
 	0127:	nn	number of chars in Sample Name
-	0128 - 013B:	Sample Name (pad with 00h)
+	0128 - 013B:	Sample Name (pad with 00h) (always 20 characters)
 			(if first character = 00h then no sample assigned)
 	013C:	00	.
 	013D:	00	.
