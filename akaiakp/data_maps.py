@@ -115,7 +115,8 @@ class LFO1Class(ToBytesAble):
     rate_mod: int = 0
     delay_mod: int = 0
     depth_mod: int = 0
-
+    u_12: int = 0
+    u_13: int = 0
 
 @dataclass
 class LFO2Class(ToBytesAble):
@@ -131,7 +132,8 @@ class LFO2Class(ToBytesAble):
     rate_mod: int = 0
     delay_mod: int = 0
     depth_mod: int = 0
-
+    u_12: int = 0
+    u_13: int = 0
 
 @dataclass
 class EnvelopeClass(ToBytesAble):

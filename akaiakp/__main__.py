@@ -16,3 +16,6 @@ for item in flz:
     print("Mods")
     pprint(item.mods)
     print("mods as bytes", item.mods.as_bytes())
+    print("PRG")
+    pprint(item.prg)
+    print("prg as bytes", item.prg.as_bytes())
