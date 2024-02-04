@@ -5,12 +5,16 @@ The Akai AKP file format is a non-standard twist on the RIFF format.
 This implementation goes from scratch so we consider these quirks as just plain.
 """
 
-from collections import OrderedDict
 import struct
 from .data_maps import *
+import logging
 
+logger = logging.getLogger(__name__)
 
 class AkaiAKPFile:
+    @property
+    def file_name(self) -> str:
+        return self._file
     @property
     def riff(self) -> RIFFClass:
         return self._riff
@@ -290,7 +294,7 @@ class AkaiAKPFile:
                 raise ValueError(f"unknown section {section_name}")
             offset += o_attribs + l_attribs * section_length
             section_counter += 1
-            print(f"Read {offset}/{self._akp_length}")
+            logger.info(f"Read {offset}/{self._akp_length}")
 
     def to_bytes(self):
         b = bytearray()

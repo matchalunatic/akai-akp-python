@@ -12,7 +12,8 @@ class ToBytesAble:
             if isinstance(el, bytes):
                 to_concat.append(el)
             else:
-                to_concat.append(bytes([el]))
+                assert el & 0x000000ff == el # ensure you don't set non 0-255 numbers
+                to_concat.append(bytes([el & 0x000000ff]))
         return b"".join(to_concat)
 
     def as_riff_bytes(self) -> bytes:
@@ -95,7 +96,6 @@ class OutClass(ToBytesAble):
     velocity_sens: int = 0x19
 
     def attrs_as_bytes(self) -> bytes:
-        print(astuple(self))
         return b"".join(bytes([a]) for a in astuple(self))
 
 
