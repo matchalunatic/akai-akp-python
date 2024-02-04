@@ -8,9 +8,11 @@ for item in sys.argv[1:]:
     flz.append(AkaiAKPFile(item))
 
 for item in flz:
-    print(item)
     item.list_sections()
     #pprint(list(item.keygroups))
     print("Tune")
     pprint(item.tune)
-    pprint(next(item.keygroups))
+    print("tune as bytes", item.tune.as_bytes())
+    print("Mods")
+    pprint(item.mods)
+    print("mods as bytes", item.mods.as_bytes())

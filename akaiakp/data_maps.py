@@ -1,8 +1,13 @@
 from dataclasses import dataclass, astuple
 
 
+class ToBytesAble:
+    def as_bytes(self) -> bytes:
+        return b"".join(bytes([a]) for a in astuple(self))
+
+
 @dataclass
-class TuneClass:
+class TuneClass(ToBytesAble):
     u_0: int = 1
     semitone_tune: int = 0
     fine_tune: int = 0
@@ -26,12 +31,9 @@ class TuneClass:
     u_20: int = 0
     u_21: int = 0
 
-    def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
-
 
 @dataclass
-class OutClass:
+class OutClass(ToBytesAble):
     u_0: int = 1
     loudness: int = 0x55
     amp_mod_1: int = 0
@@ -42,11 +44,12 @@ class OutClass:
     velocity_sens: int = 0x19
 
     def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
+        print(astuple(self))
+        return b"".join(bytes([a]) for a in astuple(self))
 
 
 @dataclass
-class PrgClass:
+class PrgClass(ToBytesAble):
     u_0: int = 1
     midi_program_number: int = 0
     number_of_keygroups: int = 0x1
@@ -55,11 +58,12 @@ class PrgClass:
     u_5: int = 0
 
     def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
+        print(astuple(self))
+        return b"".join(bytes([a]) for a in astuple(self))
 
 
 @dataclass
-class ModsClass:
+class ModsClass(ToBytesAble):
     u_0: int = 0x1
     u_1: int = 0
     u_2: int = 0x11
@@ -87,10 +91,18 @@ class ModsClass:
     u_24: int = 0x06
     lfo_2_depth_mod_src: int = 0
     u_26: int = 0
+    u_remainder: bytes = b'\00'
+
+    def as_bytes(self):
+        the_tup = astuple(self)
+        res = b"".join(bytes([a]) for a in the_tup[0:-1])
+        res = res + the_tup[-1]
+        return res
+
 
 
 @dataclass
-class LFO1Class:
+class LFO1Class(ToBytesAble):
     u_0: int = 1
     waveform: int = 0x1
     rate: int = 0x2B
@@ -104,12 +116,9 @@ class LFO1Class:
     delay_mod: int = 0
     depth_mod: int = 0
 
-    def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
-
 
 @dataclass
-class LFO2Class:
+class LFO2Class(ToBytesAble):
     u_0: int = 1
     waveform: int = 0x1
     rate: int = 0x2B
@@ -123,16 +132,14 @@ class LFO2Class:
     delay_mod: int = 0
     depth_mod: int = 0
 
-    def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
 
 @dataclass
-class EnvelopeClass:
+class EnvelopeClass(ToBytesAble):
     u_0: int = 1
     attack: int = 0
     u_2: int = 0
     decay: int = 0x32
-    release: int = 0x0f
+    release: int = 0x0F
     u_5: int = 0
     u_6: int = 0
     sustain: int = 0x64
@@ -147,17 +154,14 @@ class EnvelopeClass:
     u_16: int = 0
     u_17: int = 1
 
-    def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
-
 
 @dataclass
-class AuxEnvelopeClass:
+class AuxEnvelopeClass(ToBytesAble):
     u_0: int = 1
     rate_1: int = 0
     rate_2: int = 0x32
     rate_3: int = 0x32
-    rate_4: int = 0x0f
+    rate_4: int = 0x0F
     level_1: int = 0x64
     level_2: int = 0x64
     level_3: int = 0x64
@@ -172,5 +176,33 @@ class AuxEnvelopeClass:
     vel_out_level: int = 0
     u_17: int = 0x85
 
-    def as_bytes(self) -> bytes:
-        return b"".join(bytes(a) for a in astuple(self))
+
+@dataclass
+class ZoneClass(ToBytesAble):
+    u_0: int = 1
+    sample_char_len: int = 11
+    sample_name: bytes = b"\0" * 11
+    u_1: int = 0
+    u_2: int = 0
+    u_3: int = 0
+    u_4: int = 0
+    u_5: int = 0
+    u_6: int = 0
+    u_7: int = 0
+    u_8: int = 0
+    u_9: int = 0
+    u_10: int = 0
+    u_11: int = 0
+    u_12: int = 0
+    low_velocity: int = 0
+    high_velocity: int = 0x7F
+    fine_tune: int = 0
+    semitone_tune: int = 0
+    filter: int = 0
+    pan_balance: int = 0
+    playback: int = 0x4
+    output: int = 0
+    zone_level: int = 0
+    keyboard_track: int = 1
+    velocity_start_lsb: int = 0
+    velocity_start_msb: int = 0

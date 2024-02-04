@@ -110,37 +110,8 @@ class AkaiAKPFile:
         )
 
         self._lfo = [OrderedDict(**lfo_template), OrderedDict(**lfo_template)]
-        self._mods = OrderedDict(
-            {
-                "u_0": None,
-                "u_1": None,
-                "u_2": None,
-                "u_3": None,
-                "u_4": None,
-                "amp_mod_1_src": None,
-                "u_6": None,
-                "amp_mod_2_src": None,
-                "u_8": None,
-                "pan_mod_1_src": None,
-                "u_10": None,
-                "pan_mod_2_src": None,
-                "u_12": None,
-                "pan_mod_3_src": None,
-                "u_14": None,
-                "lfo_1_rate_mod_src": None,
-                "u_16": None,
-                "lfo_1_delay_mod_src": None,
-                "u_18": None,
-                "lfo_1_depth_mod_src": None,
-                "u_20": None,
-                "lfo_2_rate_mod_src": None,
-                "u_22": None,
-                "lfo_2_delay_mod_src": None,
-                "u_24": None,
-                "lfo_2_depth_mod_src": None,
-                "u_26": None,
-            }
-        )
+        self._mods = ModsClass()
+        
         self.readbytes()
 
     def readbytes(self):
@@ -232,38 +203,10 @@ class AkaiAKPFile:
 
     def parse_kg_zone(self, data: bytes) -> dict:
         len_sample_name = data[1]
-        sample_name = data[2 : 2 + len_sample_name].decode("ascii")
+        sample_name = data[2 : 2 + len_sample_name]
         parm_off = 1 + len_sample_name
-        return OrderedDict(
-            {
-                "sample_chars": len_sample_name,
-                "sample_name": sample_name,
-                "u_0": data[parm_off + 0],
-                "u_1": data[parm_off + 1],
-                "u_2": data[parm_off + 2],
-                "u_3": data[parm_off + 3],
-                "u_4": data[parm_off + 4],
-                "u_5": data[parm_off + 5],
-                "u_6": data[parm_off + 6],
-                "u_7": data[parm_off + 7],
-                "u_8": data[parm_off + 8],
-                "u_9": data[parm_off + 9],
-                "u_10": data[parm_off + 10],
-                "u_11": data[parm_off + 11],
-                "low_velocity": data[parm_off + 12],
-                "high_velocity": data[parm_off + 13],
-                "fine_tune": data[parm_off + 14],
-                "semitone_tune": data[parm_off + 15],
-                "filter": data[parm_off + 16],
-                "pan_balance": data[parm_off + 17],
-                "playback": data[parm_off + 18],
-                "output": data[parm_off + 19],
-                "zone_level": data[parm_off + 20],
-                "keyboard_track": data[parm_off + 21],
-                "velocity_start_lsb": data[parm_off + 22],
-                "velocity_start_msb": data[parm_off + 23],
-            }
-        )
+        
+        return ZoneClass(data[0], len_sample_name, sample_name, *data[parm_off:parm_off + 24])
 
     def parse_kg_filter(self, data: bytes):
         return OrderedDict(
@@ -326,7 +269,7 @@ class AkaiAKPFile:
                 keygroup["filter"].update(self.parse_kg_filter(sections))
             elif section_name == "zone":
                 # print(f'zone len: {section_length}')
-                keygroup[zones[zone_counter]].update(self.parse_kg_zone(sections))
+                keygroup[zones[zone_counter]] = self.parse_kg_zone(sections)
                 zone_counter += 1
             offset += section_length + 8
         return keygroup
@@ -366,8 +309,7 @@ class AkaiAKPFile:
         )
 
     def parse_mods(self, data: bytes):
-        self._mods.update(
-            {
+        up = {
                 "u_0": data[0],
                 "u_1": data[1],
                 "u_2": data[2],
@@ -395,10 +337,10 @@ class AkaiAKPFile:
                 "u_24": data[24],
                 "lfo_2_depth_mod_src": data[25],
                 "u_26": data[26],
-                "u_remainder": data[27:],
             }
-        )
-
+        for k, v in up.items():
+            setattr(self._mods, k, v)
+        self._mods.u_remainder = b''.join([data[27:]])
     def list_sections(self):
         offset = 0
         o_secname = 0
