@@ -22,21 +22,6 @@ for item in flz:
 #    print("Keygroups")
 #    pprint(item.keygroups[0])
 #    print("mods len", len(item.mods.attrs_as_bytes()))
-    b = bytearray()
-    c = bytearray()
-    c.extend(item.prg.as_riff_bytes())
-    c.extend(item.out.as_riff_bytes())
-    c.extend(item.tune.as_riff_bytes())
-    c.extend(item.lfo_1.as_riff_bytes())
-    c.extend(item.lfo_2.as_riff_bytes())
-    c.extend(item.mods.as_riff_bytes())
-    for k in item.keygroups:
-        c.extend(k.as_riff_bytes())
-    
-    item.riff.LENGTH = len(c) + 4
-    print("RIFF Len", item.riff.LENGTH)
-    print(item.riff.as_riff_bytes())
-    b.extend(item.riff.as_riff_bytes())
-    b.extend(c)
+    as_bytes = item.to_bytes()
     with open('test_out.akp', 'wb') as fh:
-        fh.write(b)
+        fh.write(as_bytes)

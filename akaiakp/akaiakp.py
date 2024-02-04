@@ -133,10 +133,8 @@ class AkaiAKPFile:
     def parse_kg_zone(self, data: bytes) -> dict:
         len_sample_name = data[1]
         sample_name = bytes(data[2 : 22])
-        print(sample_name, len(sample_name))
         parm_off = 22
         remainder = data[parm_off:]
-        print("remainder", remainder, len(remainder))
         return ZoneClass(
             data[0], len_sample_name, sample_name, *remainder
         )
@@ -181,7 +179,7 @@ class AkaiAKPFile:
                 assert section_length == 10
                 filter = self.parse_kg_filter(sections)
             elif section_name == "zone":
-                print(f'zone len: {section_length}')
+                assert section_length == 48
                 zones[zone_counter] = self.parse_kg_zone(sections)
                 zone_counter += 1
             offset += section_length + 8
@@ -262,7 +260,6 @@ class AkaiAKPFile:
             sections = self._as_bytes[
                 ro_attribs : ro_attribs + l_attribs * section_length
             ]
-            print(f"Section: [{section_name}] (len: {section_length})")
             assert section_length % 2 == 0
             if section_name == "RIFF":
                 # skip the garbage of the RIFF file for good hey
@@ -294,3 +291,19 @@ class AkaiAKPFile:
             offset += o_attribs + l_attribs * section_length
             section_counter += 1
             print(f"Read {offset}/{self._akp_length}")
+
+    def to_bytes(self):
+        b = bytearray()
+        c = bytearray()
+        c.extend(self.prg.as_riff_bytes())
+        c.extend(self.out.as_riff_bytes())
+        c.extend(self.tune.as_riff_bytes())
+        c.extend(self.lfo_1.as_riff_bytes())
+        c.extend(self.lfo_2.as_riff_bytes())
+        c.extend(self.mods.as_riff_bytes())
+        for k in self.keygroups:
+            c.extend(k.as_riff_bytes())
+        self.riff.LENGTH = len(c) + 4
+        b.extend(self.riff.as_riff_bytes())
+        b.extend(c)
+        return b
