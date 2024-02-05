@@ -14,6 +14,7 @@ for item in sys.argv[1:]:
 
 for item in filez:
     #print("XPM to JSON -->", json.dumps(asdict(item._mpcvobj), indent=4))
+    item.program.program_name += " m-edit"
     with open("test-out.xml", "w", encoding='utf-8') as fh:
         x = item.to_xml()
         fh.write(x)
