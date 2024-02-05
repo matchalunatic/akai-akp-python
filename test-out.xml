@@ -154,6 +154,12 @@
     }
 }</ProgramPads-v2.10>
     <CueBusEnable>False</CueBusEnable>
+    <AudioRoute>
+      <AudioRoute>2</AudioRoute>
+      <AudioRouteSubIndex>0</AudioRouteSubIndex>
+      <AudioRouteChannelBitmap>3</AudioRouteChannelBitmap>
+      <InsertsEnabled>True</InsertsEnabled>
+    </AudioRoute>
     <Send1>0.000000</Send1>
     <Send2>0.000000</Send2>
     <Send3>0.000000</Send3>
@@ -163,6 +169,7 @@
     <Solo>False</Solo>
     <Pan>0.500000</Pan>
     <AutomationFilter>1</AutomationFilter>
+    <Pitch>0.000000</Pitch>
     <TuneCoarse>0</TuneCoarse>
     <TuneFine>0</TuneFine>
     <Mono>False</Mono>

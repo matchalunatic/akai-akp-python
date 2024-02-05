@@ -179,6 +179,7 @@ class AkaiXPMInstrument(XMLLoadable):
     solo: bool
     pan: float
     automation_filter: int
+    # pitch: int
     filter_keytrack: float
     filter_type: int
     cutoff: float
@@ -282,6 +283,7 @@ class AkaiXPMProgram(XMLLoadable):
     program_name: str
     program_pads: str
     cue_bus_enable: bool
+    audio_route: AkaiXPMAudioRoute
     send1: float
     send2: float
     send3: float
@@ -291,6 +293,7 @@ class AkaiXPMProgram(XMLLoadable):
     solo: bool
     pan: float
     automation_filter: int
+    pitch: float
     tune_coarse: int
     tune_fine: int
     mono: bool
