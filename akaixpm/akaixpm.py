@@ -161,9 +161,16 @@ class AkaiXPMInstrumentLayer(XMLLoadable):
     slice_tail_position: float
     slice_tail_length: float
 
+@dataclass
+class AkaiXPMDrumPadEffect(XMLLoadable):
+    tag_name: ClassVar[str] = "DrumPadEffect"
+    collection_name: ClassVar[str] = "DrumPadEffects"
+    num: int
+    parameter: float
+    type: int
 
 @dataclass
-class AkaiXPMInstrument(XMLLoadable):
+class AkaiXPMKeygroupInstrument(XMLLoadable):
     tag_name: ClassVar[str] = "Instrument"
     collection_name: ClassVar[str] = "Instruments"
 
@@ -231,6 +238,97 @@ class AkaiXPMInstrument(XMLLoadable):
     cutoff_random: float
     resonance_random: float
     lfo: AkaiXPMLFO
+    drum_pad_effects: list[AkaiXPMDrumPadEffect]
+    tune_coarse: int
+    tune_fine: int
+    mono: bool
+    polyphony: int
+    low_note: int
+    high_note: int
+    ignore_base_note: bool
+    zone_play: int
+    mute_group: int
+    mute_target1: int
+    mute_target2: int
+    mute_target3: int
+    mute_target4: int
+    simult_target1: int
+    simult_target2: int
+    simult_target3: int
+    simult_target4: int
+    trigger_mode: int
+    layers: list[AkaiXPMInstrumentLayer]  # 4 layers
+
+@dataclass
+class AkaiXPMDrumInstrument(XMLLoadable):
+    tag_name: ClassVar[str] = "Instrument"
+    collection_name: ClassVar[str] = "Instruments"
+
+    number: int
+    cue_bus_enable: bool
+    audio_route: AkaiXPMAudioRoute
+    send1: float
+    send2: float
+    send3: float
+    send4: float
+    volume: float
+    mute: bool
+    solo: bool
+    pan: float
+    automation_filter: int
+    # pitch: int
+    filter_keytrack: float
+    filter_type: int
+    cutoff: float
+    resonance: float
+    filter_env_amt: float
+    after_touch_to_filter: float
+    velocity_to_filter: float
+    velocity_to_filter_envelope: float
+    velocity_to_start: float
+    velocity_to_filter_attack: float
+    filter_attack: float
+    filter_decay: float
+    filter_sustain: float
+    filter_release: float
+    filter_attack_curve: float
+    filter_decay_curve: float
+    filter_release_curve: float
+    filter_hold: float
+    filter_decay_type: bool
+    filter_a_d_envelope: bool
+    volume_hold: float
+    volume_decay_type: bool
+    volume_a_d_envelope: bool
+    volume_attack: float
+    volume_decay: float
+    volume_sustain: float
+    volume_release: float
+    volume_attack_curve: float
+    volume_decay_curve: float
+    volume_release_curve: float
+    pitch_hold: float
+    pitch_decay_type: bool
+    pitch_a_d_envelope: bool
+    pitch_attack: float
+    pitch_decay: float
+    pitch_sustain: float
+    pitch_release: float
+    pitch_attack_curve: float
+    pitch_decay_curve: float
+    pitch_release_curve: float
+    pitch_env_amount: float
+    velocity_to_pitch: float
+    velocity_to_volume_attack: float
+    velocity_sensitivity: float
+    velocity_to_pan: float
+    randomization_scale: float
+    attack_random: float
+    decay_random: float
+    cutoff_random: float
+    resonance_random: float
+    lfo: AkaiXPMLFO
+    drum_pad_effects: list[AkaiXPMDrumPadEffect]
     tune_coarse: int
     tune_fine: int
     mono: bool
@@ -271,8 +369,8 @@ class AkaiXPMPadGroup(XMLLoadable):
 
 
 @dataclass
-class AkaiXPMProgram(XMLLoadable):
-    """AkaiXPMProgram represents the XML data in an XPM for the program.
+class AkaiXPMKeygroupProgram(XMLLoadable):
+    """AkaiXPMKeygroupProgram represents the XML data in an XPM for the program.
 
     Offense intended, this is weaponized stupidity.
     """
@@ -303,11 +401,53 @@ class AkaiXPMProgram(XMLLoadable):
     portamento_quantized: bool
     program_xfader_route: int
     instruments: list[
-        AkaiXPMInstrument
+        AkaiXPMKeygroupInstrument
     ]  # a 128-item list of instruments, how stupid can you get?
     pad_note_map: list[AkaiXPMPadNote]  # same, 128
     pad_group_map: list[AkaiXPMPadGroup]
     keygroup_master_transpose: float
+    keygroup_num_keygroups: int
+    keygroup_pitch_bend_range: float
+    keygroup_wheel_to_lfo: float
+    keygroup_aftertouch_to_filter: float
+
+@dataclass
+class AkaiXPMKDrumProgram(XMLLoadable):
+    """AkaiXPMKeygroupProgram represents the XML data in an XPM for the program.
+
+    Offense intended, this is weaponized stupidity.
+    """
+
+    tag_name: ClassVar[str] = "Program"
+
+    program_type: str
+    program_name: str
+    program_pads: str
+    cue_bus_enable: bool
+    audio_route: AkaiXPMAudioRoute
+    send1: float
+    send2: float
+    send3: float
+    send4: float
+    volume: float
+    mute: bool
+    solo: bool
+    pan: float
+    automation_filter: int
+    pitch: float
+    tune_coarse: int
+    tune_fine: int
+    mono: bool
+    program_polyphony: int
+    portamento_time: float
+    portamento_legato: bool
+    portamento_quantized: bool
+    program_xfader_route: int
+    instruments: list[
+        AkaiXPMDrumInstrument
+    ]  # a 128-item list of instruments, how stupid can you get?
+    pad_note_map: list[AkaiXPMPadNote]  # same, 128
+    pad_group_map: list[AkaiXPMPadGroup]
     keygroup_num_keygroups: int
     keygroup_pitch_bend_range: float
     keygroup_wheel_to_lfo: float
@@ -319,7 +459,7 @@ class AkaiXPMMPCVObject(XMLLoadable):
     tag_name: ClassVar[str] = "MPCVObject"
 
     version: AkaiXPMVersion
-    program: AkaiXPMProgram
+    program: AkaiXPMKeygroupProgram
 
 
 MAP_TAGS_CLASSES = {
@@ -327,14 +467,16 @@ MAP_TAGS_CLASSES = {
     "PadNote": AkaiXPMPadNote,
     "PadGroupMap": AkaiXPMPadGroup,
     "PadGroup": AkaiXPMPadGroup,
-    "Instruments": AkaiXPMInstrument,
-    "Instrument": AkaiXPMInstrument,
+    "Instruments": AkaiXPMKeygroupInstrument,
+    "Instrument": AkaiXPMKeygroupInstrument,
     "Layers": AkaiXPMInstrumentLayer,
     "Layer": AkaiXPMInstrumentLayer,
     "AudioRoute": AkaiXPMAudioRoute,
     "LFO": AkaiXPMLFO,
-    "Program": AkaiXPMProgram,
+    "Program": AkaiXPMKeygroupProgram,
     "Version": AkaiXPMVersion,
+    "DrumPadEffects": AkaiXPMDrumPadEffect,
+    "DrumPadEffect": AkaiXPMDrumPadEffect,
 }
 
 PROPER_TAG_NAMES = {
@@ -357,6 +499,16 @@ def juice_tags(e: bs4.element.Tag, wanted_field: str):
     elif wanted_field == "lfo_num":
         assert e.name == "LFO"
         return e["LfoNum"]
+    elif e.name == "DrumPadEffect":
+        assert wanted_field in ('num', 'parameter', 'type')
+        return e[pascal_case_name]
+        # if wanted_field == "num":
+        #     return e["Num"]
+        # elif wanted_field == "parameter":
+        #     return e["Parameter"]
+        # elif wanted_field == "type":
+        #     return e["Type"]
+
     elif wanted_field == "program_pads":
         return json.loads(e.find(PROGRAMPADS_TAG).text)
     elif wanted_field in PROPER_TAG_NAMES:
@@ -375,7 +527,7 @@ def juice_tags(e: bs4.element.Tag, wanted_field: str):
     #        pascal_case_name = 'Application_Version'
     elm = e.find(name=pascal_case_name)
     if elm is None:
-        logging.error("Cannot find %s", pascal_case_name)
+        logging.error("Cannot find %s in %s", pascal_case_name, e.name)
         raise ValueError(f"Ouch, failed for {pascal_case_name}")
     elm_c = elm.findChildren()
     if len(elm_c) == 0:
@@ -410,6 +562,8 @@ def unjuice_tags(e: bs4.element.Tag, wanted_field: str, value, soup: bs4.Beautif
     elif wanted_field == "lfo_num":
         assert e.name == "LFO"
         e["LfoNum"] = value
+    elif e.name == "DrumPadEffect":
+        assert wanted_field in ('num', 'parameter', 'type')
     else:
         pascal_case_name = "".join(f.capitalize() for f in wanted_field.split("_"))
         if wanted_field in PROPER_TAG_NAMES:
