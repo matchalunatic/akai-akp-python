@@ -48,7 +48,8 @@ class AkaiXPMFile:
         newsoup = bs4.BeautifulSoup('<MPCVObject></MPCVObject>', "xml")
         xmlstr = str(self._mpcvobj.to_xml_element(newsoup))
         logger.info("xmlstr len %s", len(xmlstr))
-        dom = xml.dom.minidom.parseString(xmlstr) # or xml.dom.minidom.parseString(xml_string)
+        dom = xml.dom.minidom.parseString(xmlstr)
+        # ewww
         return dom.toprettyxml(indent='  ').replace('<?xml version="1.0" ?>', '<?xml version="1.0" encoding="UTF-8"?>\n').replace('<SampleName/>', '<SampleName></SampleName>').replace('<SampleFile/>', '<SampleFile></SampleFile>')
 
 class XMLLoadable:
