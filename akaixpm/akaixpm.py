@@ -7,14 +7,11 @@ from html import escape
 import xml.dom.minidom
 
 
-
 logger = logging.getLogger(__name__)
 PT_KEYGROUP = "Keygroup"
 PT_DRUMS = "Drum"
 
 PROGRAMPADS_TAG = "ProgramPads-v2.10"
-
-
 
 
 class AkaiXPMFile:
@@ -25,6 +22,7 @@ class AkaiXPMFile:
     @property
     def version(self):
         return self._mpcvobj.version
+
     def __init__(self, path):
         self._file_path = path
         self._mpcvobj = None
@@ -45,12 +43,20 @@ class AkaiXPMFile:
                 self._parse_mpcvobject(tag)
 
     def to_xml(self):
-        newsoup = bs4.BeautifulSoup('<MPCVObject></MPCVObject>', "xml")
+        newsoup = bs4.BeautifulSoup("<MPCVObject></MPCVObject>", "xml")
         xmlstr = str(self._mpcvobj.to_xml_element(newsoup))
         logger.info("xmlstr len %s", len(xmlstr))
         dom = xml.dom.minidom.parseString(xmlstr)
         # ewww
-        return dom.toprettyxml(indent='  ').replace('<?xml version="1.0" ?>', '<?xml version="1.0" encoding="UTF-8"?>\n').replace('<SampleName/>', '<SampleName></SampleName>').replace('<SampleFile/>', '<SampleFile></SampleFile>')
+        return (
+            dom.toprettyxml(indent="  ")
+            .replace(
+                '<?xml version="1.0" ?>', '<?xml version="1.0" encoding="UTF-8"?>\n'
+            )
+            .replace("<SampleName/>", "<SampleName></SampleName>")
+            .replace("<SampleFile/>", "<SampleFile></SampleFile>")
+        )
+
 
 class XMLLoadable:
     tag_name: ClassVar[str]
@@ -58,7 +64,7 @@ class XMLLoadable:
 
     @classmethod
     def from_xml_element(cls, e: bs4.element.Tag):
-        if (e.name == cls.collection_name):
+        if e.name == cls.collection_name:
             # this is a collection, let's make a list
             r = []
             for elm in e.children:
@@ -85,7 +91,7 @@ class XMLLoadable:
 
 @dataclass
 class AkaiXPMVersion(XMLLoadable):
-    tag_name: ClassVar[str] = 'Version'
+    tag_name: ClassVar[str] = "Version"
 
     file_version: str
     application: str
@@ -305,36 +311,37 @@ class AkaiXPMProgram(XMLLoadable):
     keygroup_aftertouch_to_filter: float
 
 
-
 @dataclass
 class AkaiXPMMPCVObject(XMLLoadable):
-    tag_name: ClassVar[str] = 'MPCVObject'
+    tag_name: ClassVar[str] = "MPCVObject"
 
-    version: AkaiXPMVersion    
+    version: AkaiXPMVersion
     program: AkaiXPMProgram
 
+
 MAP_TAGS_CLASSES = {
-    'PadNoteMap': AkaiXPMPadNote,
-    'PadNote': AkaiXPMPadNote,
-    'PadGroupMap': AkaiXPMPadGroup,
-    'PadGroup': AkaiXPMPadGroup,
-    'Instruments': AkaiXPMInstrument,
-    'Instrument': AkaiXPMInstrument,
-    'Layers': AkaiXPMInstrumentLayer,
-    'Layer': AkaiXPMInstrumentLayer,
-    'AudioRoute': AkaiXPMAudioRoute,
-    'LFO': AkaiXPMLFO,
-    'Program': AkaiXPMProgram,
-    'Version': AkaiXPMVersion,
+    "PadNoteMap": AkaiXPMPadNote,
+    "PadNote": AkaiXPMPadNote,
+    "PadGroupMap": AkaiXPMPadGroup,
+    "PadGroup": AkaiXPMPadGroup,
+    "Instruments": AkaiXPMInstrument,
+    "Instrument": AkaiXPMInstrument,
+    "Layers": AkaiXPMInstrumentLayer,
+    "Layer": AkaiXPMInstrumentLayer,
+    "AudioRoute": AkaiXPMAudioRoute,
+    "LFO": AkaiXPMLFO,
+    "Program": AkaiXPMProgram,
+    "Version": AkaiXPMVersion,
 }
 
 PROPER_TAG_NAMES = {
-    'program_polyphony': 'Program_Polyphony',
-    'program_xfader_route': 'Program.Xfader.Route',
-    'lfo': 'LFO',
-    'file_version': 'File_Version',
-    'application_version': 'Application_Version',
+    "program_polyphony": "Program_Polyphony",
+    "program_xfader_route": "Program.Xfader.Route",
+    "lfo": "LFO",
+    "file_version": "File_Version",
+    "application_version": "Application_Version",
 }
+
 
 def juice_tags(e: bs4.element.Tag, wanted_field: str):
     """find the right field from the tag, handling special cases, like you would juice a bad orange"""
@@ -346,23 +353,23 @@ def juice_tags(e: bs4.element.Tag, wanted_field: str):
         return e["number"]
     elif wanted_field == "lfo_num":
         assert e.name == "LFO"
-        return e['LfoNum']
+        return e["LfoNum"]
     elif wanted_field == "program_pads":
         return json.loads(e.find(PROGRAMPADS_TAG).text)
     elif wanted_field in PROPER_TAG_NAMES:
         pascal_case_name = PROPER_TAG_NAMES[wanted_field]
-#    elif wanted_field == "program_polyphony":
-#        assert e.name == "Program"
-#        pascal_case_name = 'Program_Polyphony'
-#    elif wanted_field == "program_xfader_route":
-#        assert e.name == "Program"
-#        pascal_case_name = "Program.Xfader.Route"
-#    elif wanted_field == 'lfo':
-#        pascal_case_name = 'LFO'
-#    elif wanted_field == 'file_version':
-#        pascal_case_name = 'File_Version'
-#    elif wanted_field == 'application_version':
-#        pascal_case_name = 'Application_Version'
+    #    elif wanted_field == "program_polyphony":
+    #        assert e.name == "Program"
+    #        pascal_case_name = 'Program_Polyphony'
+    #    elif wanted_field == "program_xfader_route":
+    #        assert e.name == "Program"
+    #        pascal_case_name = "Program.Xfader.Route"
+    #    elif wanted_field == 'lfo':
+    #        pascal_case_name = 'LFO'
+    #    elif wanted_field == 'file_version':
+    #        pascal_case_name = 'File_Version'
+    #    elif wanted_field == 'application_version':
+    #        pascal_case_name = 'Application_Version'
     elm = e.find(name=pascal_case_name)
     if elm is None:
         logging.error("Cannot find %s", pascal_case_name)
@@ -375,28 +382,31 @@ def juice_tags(e: bs4.element.Tag, wanted_field: str):
         return MAP_TAGS_CLASSES[elm.name].from_xml_element(elm)
 
 
-def unjuice_normal_tag(e: bs4.element.Tag, field_name: str, value: str, soup: bs4.BeautifulSoup):
+def unjuice_normal_tag(
+    e: bs4.element.Tag, field_name: str, value: str, soup: bs4.BeautifulSoup
+):
     """simply set a value for a tag"""
     t = soup.new_tag(field_name)
     t.string = value
     e.append(t)
     return
 
+
 def unjuice_tags(e: bs4.element.Tag, wanted_field: str, value, soup: bs4.BeautifulSoup):
     if value is None:
         value = ""
-    if wanted_field == 'program_type':
-        assert e.name == 'Program'
-        e['type'] = value
-    elif wanted_field == 'number':
-        e['number'] = value
-    elif wanted_field == 'program_pads':
+    if wanted_field == "program_type":
+        assert e.name == "Program"
+        e["type"] = value
+    elif wanted_field == "number":
+        e["number"] = value
+    elif wanted_field == "program_pads":
         f = soup.new_tag(PROGRAMPADS_TAG)
         f.string = json.dumps(value, indent=4)
         e.append(f)
-    elif wanted_field == 'lfo_num':
-        assert e.name == 'LFO'
-        e['LfoNum'] = value
+    elif wanted_field == "lfo_num":
+        assert e.name == "LFO"
+        e["LfoNum"] = value
     else:
         pascal_case_name = "".join(f.capitalize() for f in wanted_field.split("_"))
         if wanted_field in PROPER_TAG_NAMES:
@@ -404,8 +414,8 @@ def unjuice_tags(e: bs4.element.Tag, wanted_field: str, value, soup: bs4.Beautif
         if pascal_case_name in MAP_TAGS_CLASSES:
             tgtcls = MAP_TAGS_CLASSES[pascal_case_name]
             # special case: AudioRoute.AudioRoute
-            if pascal_case_name == 'AudioRoute' and e.name == 'AudioRoute':
-                return unjuice_normal_tag(e, 'AudioRoute', value, soup)
+            if pascal_case_name == "AudioRoute" and e.name == "AudioRoute":
+                return unjuice_normal_tag(e, "AudioRoute", value, soup)
             if tgtcls.collection_name is not None:
                 # create a collection tag
                 coll = soup.new_tag(tgtcls.collection_name)
