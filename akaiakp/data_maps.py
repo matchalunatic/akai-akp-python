@@ -1,18 +1,25 @@
 from dataclasses import dataclass, astuple
 from typing import ClassVar
 from struct import pack
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ToBytesAble:
     LENGTH: ClassVar[int]
     SECTION_NAME: ClassVar[bytes]
     SKIP_FIELDS: ClassVar[list[str]] = []
+    
     def attrs_as_bytes(self) -> bytes:
         to_concat = []
         for el in astuple(self):
             if isinstance(el, bytes):
                 to_concat.append(el)
             else:
-                assert el & 0x000000ff == el # ensure you don't set non 0-255 numbers
+                if el < 0:
+                    assert el > -128 # ensure we don't set too low negative values before we truncate the 2's comp
+                    el = el % (1 << 8)
+                assert el & 0x000000ff == el # ensure you don't set out of range stuff
                 to_concat.append(bytes([el & 0x000000ff]))
         return b"".join(to_concat)
 
@@ -94,9 +101,6 @@ class OutClass(ToBytesAble):
     pan_mod_2: int = 0
     pan_mod_3: int = 0
     velocity_sens: int = 0x19
-
-    def attrs_as_bytes(self) -> bytes:
-        return b"".join(bytes([a]) for a in astuple(self))
 
 
 @dataclass

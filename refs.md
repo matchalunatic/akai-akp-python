@@ -112,6 +112,14 @@ All values to the left are in hex.
 Enjoy!
 
 
+## Note from MatchaLunatic
+
+The spec is imperfect, it's reverse engineered. i am doing some guesswork, i think the numbers
+use 2's complement. Let's try it out.
+
+
+## Format
+
 0000 - 0003:	'RIFF'
 0004 - 0007:	00 00 00 00 (0)
 0008 - 000B:	'APRG'
