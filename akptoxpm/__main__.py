@@ -10,7 +10,7 @@ f = None
 try:
     action = sys.argv[1]
     f = AkaiAKPToXPM(sys.argv[2], sys.argv[3])
-except:
+except Exception:
     halp()
     sys.exit(1)
 if action == 'to_xpm':

@@ -19,3 +19,5 @@ for item in filez:
         x = item.to_xml()
         fh.write(x)
         logger.info("wrote %s bytes to test-out.xml", len(x))
+    with open("program.json", "w", encoding="utf-8") as fh:
+        json.dump(item.program.program_pads, fh, indent=2)
